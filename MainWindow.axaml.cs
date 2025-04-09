@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     private TimeSpan remainingTime;
     private DispatcherTimer? backgroundTimer;
     private readonly List<TextBlock> backgroundElements = new();
+    private readonly List<TextBlock> floatingNumbers = new();
 
     public MainWindow()
     {
@@ -33,6 +34,7 @@ public partial class MainWindow : Window
         GenerateNewProblem();
         StartTimer();
         InitializeBackground();
+        InitializeFloatingNumbers();
 
         // Handle key press for Enter key
         AnswerInput.KeyDown += (s, e) =>
@@ -61,17 +63,46 @@ public partial class MainWindow : Window
         backgroundTimer.Start();
     }
 
+    private void InitializeFloatingNumbers()
+    {
+        // Create floating numbers
+        for (int i = 0; i < 10; i++)
+        {
+            AddFloatingNumber();
+        }
+    }
+
+    private void AddFloatingNumber()
+    {
+        var number = random.Next(1, 10);
+        var element = new TextBlock
+        {
+            Text = number.ToString(),
+            FontSize = random.Next(20, 40),
+            Foreground = new SolidColorBrush(new Color(77, 255, 255, 255)),
+            RenderTransform = new TranslateTransform
+            {
+                X = random.Next((int)BackgroundCanvas.Bounds.Width),
+                Y = random.Next((int)BackgroundCanvas.Bounds.Height)
+            }
+        };
+
+        BackgroundCanvas.Children.Add(element);
+        floatingNumbers.Add(element);
+    }
+
     private void AddBackgroundElement()
     {
         var element = new TextBlock
         {
             Text = random.Next(2) == 0 ? "×" : "+",
             FontSize = random.Next(20, 40),
-            Foreground = new SolidColorBrush(Color.FromArgb(50, 255, 255, 255)),
-            RenderTransform = new TranslateTransform(
-                random.Next((int)BackgroundCanvas.Bounds.Width),
-                random.Next((int)BackgroundCanvas.Bounds.Height)
-            )
+            Foreground = new SolidColorBrush(new Color(51, 255, 255, 255)),
+            RenderTransform = new TranslateTransform
+            {
+                X = random.Next((int)BackgroundCanvas.Bounds.Width),
+                Y = random.Next((int)BackgroundCanvas.Bounds.Height)
+            }
         };
 
         BackgroundCanvas.Children.Add(element);
@@ -80,10 +111,25 @@ public partial class MainWindow : Window
 
     private void BackgroundTimer_Tick(object? sender, EventArgs e)
     {
+        // Animate background elements
         foreach (var element in backgroundElements)
         {
             var transform = (TranslateTransform)element.RenderTransform;
             transform.Y -= 2;
+
+            if (transform.Y < -50)
+            {
+                transform.Y = BackgroundCanvas.Bounds.Height + 50;
+                transform.X = random.Next((int)BackgroundCanvas.Bounds.Width);
+            }
+        }
+
+        // Animate floating numbers
+        foreach (var number in floatingNumbers)
+        {
+            var transform = (TranslateTransform)number.RenderTransform;
+            transform.Y -= 1;
+            transform.X += Math.Sin(transform.Y / 50) * 2;
 
             if (transform.Y < -50)
             {
@@ -137,14 +183,22 @@ public partial class MainWindow : Window
             secondNumber = random.Next(1, 11);
         }
 
+        // Animate problem text
         if (ProblemText != null)
         {
+            ProblemText.Foreground = new SolidColorBrush(Colors.White);
+            ProblemText.RenderTransform = new ScaleTransform(1, 1);
             ProblemText.Text = $"{firstNumber} × {secondNumber} = ?";
-            if (AnswerInput != null)
-            {
-                AnswerInput.Text = "";
-                AnswerInput.Focus();
-            }
+            
+            // Add floating numbers to background
+            AddFloatingNumber();
+            AddFloatingNumber();
+        }
+
+        if (AnswerInput != null)
+        {
+            AnswerInput.Text = "";
+            AnswerInput.Focus();
         }
     }
 
@@ -163,37 +217,69 @@ public partial class MainWindow : Window
             if (answer == correctAnswer)
             {
                 // Play correct answer animation
-                ProblemText.Foreground = new SolidColorBrush(Colors.Lime);
-                ProblemText.RenderTransform = new ScaleTransform(1.2, 1.2);
-
-                currentScore += 10;
-                problemsSolved++;
-                
-                if (ProgressBar != null)
-                    ProgressBar.Value = problemsSolved;
-                if (ScoreText != null)
-                    ScoreText.Text = $"Poeng: {currentScore}";
-
-                // Update stats
-                if (!problemStats.ContainsKey(problemKey))
-                    problemStats[problemKey] = 0;
-                problemStats[problemKey]++;
-
-                if (problemsSolved >= 10)
+                if (ProblemText != null)
                 {
-                    SaveStats();
-                    ShowVictory();
-                }
-                else
-                {
-                    GenerateNewProblem();
+                    ProblemText.Foreground = new SolidColorBrush(Colors.Lime);
+                    ProblemText.RenderTransform = new ScaleTransform(1.2, 1.2);
+                    
+                    // Animate score increase
+                    currentScore += 10;
+                    problemsSolved++;
+                    if (ScoreText != null)
+                        ScoreText.Text = $"Poeng: {currentScore}";
+                    if (ProgressBar != null)
+                        ProgressBar.Value = problemsSolved;
+
+                    // Update stats
+                    if (!problemStats.ContainsKey(problemKey))
+                        problemStats[problemKey] = 0;
+                    problemStats[problemKey]++;
+
+                    if (problemsSolved >= 10)
+                    {
+                        SaveStats();
+                        ShowVictory();
+                    }
+                    else
+                    {
+                        // Delay next problem
+                        DispatcherTimer.RunOnce(() =>
+                        {
+                            if (ProblemText != null)
+                            {
+                                ProblemText.RenderTransform = new ScaleTransform(1, 1);
+                                GenerateNewProblem();
+                            }
+                        }, TimeSpan.FromMilliseconds(500));
+                    }
                 }
             }
             else
             {
                 // Play wrong answer animation
-                ProblemText.Foreground = new SolidColorBrush(Colors.Red);
-                ProblemText.RenderTransform = new TranslateTransform(10, 0);
+                if (ProblemText != null)
+                {
+                    ProblemText.Foreground = new SolidColorBrush(Colors.Red);
+                    ProblemText.RenderTransform = new TranslateTransform(10, 0);
+                    
+                    // Shake animation
+                    DispatcherTimer.RunOnce(() =>
+                    {
+                        if (ProblemText != null)
+                        {
+                            ProblemText.RenderTransform = new TranslateTransform(-10, 0);
+                        }
+                    }, TimeSpan.FromMilliseconds(100));
+                    
+                    DispatcherTimer.RunOnce(() =>
+                    {
+                        if (ProblemText != null)
+                        {
+                            ProblemText.RenderTransform = new TranslateTransform(0, 0);
+                            ProblemText.Foreground = new SolidColorBrush(Colors.White);
+                        }
+                    }, TimeSpan.FromMilliseconds(200));
+                }
 
                 // Update stats for incorrect answer
                 if (!problemStats.ContainsKey(problemKey))
@@ -211,8 +297,18 @@ public partial class MainWindow : Window
         }
         else
         {
-            var messageBox = MessageBoxManager.GetMessageBoxStandard("Ugyldig input", "Vennligst skriv inn et gyldig tall!", ButtonEnum.Ok);
-            _ = messageBox.ShowAsync();
+            // Show error animation
+            if (AnswerInput != null)
+            {
+                AnswerInput.BorderBrush = new SolidColorBrush(Colors.Red);
+                DispatcherTimer.RunOnce(() =>
+                {
+                    if (AnswerInput != null)
+                    {
+                        AnswerInput.BorderBrush = new SolidColorBrush(new Color(255, 76, 175, 80));
+                    }
+                }, TimeSpan.FromMilliseconds(500));
+            }
         }
     }
 
@@ -224,13 +320,19 @@ public partial class MainWindow : Window
             VictoryText.Opacity = 1;
             VictoryText.RenderTransform = new ScaleTransform(1, 1);
 
+            // Add confetti effect
+            for (int i = 0; i < 50; i++)
+            {
+                AddFloatingNumber();
+            }
+
             // Show message and close after animation
             DispatcherTimer.RunOnce(() =>
             {
                 var messageBox = MessageBoxManager.GetMessageBoxStandard("Bra jobbet!", "Gratulerer! Du har løst nok oppgaver og kan bruke datamaskinen i 30 minutter!", ButtonEnum.Ok);
                 _ = messageBox.ShowAsync();
                 Close();
-            }, TimeSpan.FromSeconds(1));
+            }, TimeSpan.FromSeconds(3));
         }
     }
 
@@ -254,9 +356,12 @@ public partial class MainWindow : Window
         if (remainingTime.TotalSeconds <= 0)
         {
             timer?.Stop();
-            var messageBox = MessageBoxManager.GetMessageBoxStandard("Tid er ute", "Tiden er ute! Du må løse flere oppgaver for å fortsette å bruke datamaskinen.", ButtonEnum.Ok);
-            _ = messageBox.ShowAsync();
-            Close();
+            if (ProblemText != null)
+            {
+                ProblemText.Foreground = new SolidColorBrush(Colors.Red);
+                ProblemText.Text = "Tiden er ute!";
+            }
+            DispatcherTimer.RunOnce(() => Close(), TimeSpan.FromSeconds(2));
         }
     }
 }

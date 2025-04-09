@@ -2,125 +2,141 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Matteo.Views.MainWindow"
-        Title="Matteo - Lær gangetabellen!"
-        WindowState="FullScreen"
-        Background="Black"
-        SystemDecorations="None">
+        Title="Matteo"
+        WindowState="Maximized"
+        Background="#1a1a1a">
+    
+    <Grid>
+        <!-- Animated Background -->
+        <Canvas x:Name="BackgroundCanvas" Background="#1a1a1a">
+            <!-- Background elements will be added programmatically -->
+        </Canvas>
 
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
+        <!-- Main Game Area -->
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-    <!-- Header -->
-    <StackPanel Grid.Row="0" Margin="20">
-      <TextBlock Text="Matteo - Lær gangetabellen!"
-                FontSize="32"
-                FontWeight="Bold"
-                HorizontalAlignment="Center"
-                Foreground="White"/>
-      <TextBlock Text="Løs mattestykkene for å komme tilbake til datamaskinen!"
-                FontSize="18"
-                HorizontalAlignment="Center"
-                Foreground="White"/>
-    </StackPanel>
+            <!-- Top Bar with Score and Time -->
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock x:Name="ScoreText" 
+                         Text="Poeng: 0" 
+                         FontSize="24" 
+                         Foreground="White"
+                         VerticalAlignment="Center"/>
+                
+                <TextBlock x:Name="TimeText" 
+                         Text="Tid igjen: 30 min 0 sek" 
+                         FontSize="24" 
+                         Foreground="White"
+                         Grid.Column="1"
+                         VerticalAlignment="Center"/>
+            </Grid>
 
-    <!-- Main Content -->
-    <Grid Grid.Row="1">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="*"/>
-      </Grid.ColumnDefinitions>
+            <!-- Progress Bar -->
+            <ProgressBar x:Name="ProgressBar" 
+                        Grid.Row="0"
+                        Maximum="10" 
+                        Value="0"
+                        Height="20"
+                        Margin="0,50,0,0"
+                        Background="#333333"
+                        Foreground="#4CAF50">
+                <ProgressBar.Styles>
+                    <Style Selector="ProgressBar">
+                        <Setter Property="Template">
+                            <ControlTemplate>
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="10">
+                                    <Grid>
+                                        <Border Name="PART_Indicator"
+                                                Background="{TemplateBinding Foreground}"
+                                                BorderThickness="0"
+                                                CornerRadius="10"
+                                                HorizontalAlignment="Left"
+                                                Width="{TemplateBinding Value}%"/>
+                                    </Grid>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter>
+                    </Style>
+                </ProgressBar.Styles>
+            </ProgressBar>
 
-      <!-- Math Problem -->
-      <StackPanel Grid.Column="0" 
-                  VerticalAlignment="Center" 
-                  HorizontalAlignment="Center">
-        <TextBlock x:Name="ProblemText" 
-                   Text="1 × 1 = ?"
-                   FontSize="48"
-                   Foreground="White"
-                   HorizontalAlignment="Center">
-          <TextBlock.Transitions>
-            <Transitions>
-              <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
-              <BrushTransition Property="Foreground" Duration="0:0:0.2"/>
-            </Transitions>
-          </TextBlock.Transitions>
-        </TextBlock>
-        
-        <TextBox x:Name="AnswerInput"
-                 Width="200"
-                 Margin="0,20,0,0"
-                 Watermark="Skriv svaret her"
-                 FontSize="24"
-                 HorizontalContentAlignment="Center"/>
-      </StackPanel>
+            <!-- Center Game Area -->
+            <Grid Grid.Row="1" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-      <!-- Progress and Stats -->
-      <StackPanel Grid.Column="1" 
-                  VerticalAlignment="Center" 
-                  HorizontalAlignment="Center">
-        <TextBlock Text="Din fremgang:"
-                   FontSize="24"
-                   Foreground="White"/>
-        
-        <ProgressBar x:Name="ProgressBar"
-                     Value="0"
-                     Maximum="10"
-                     Height="20"
-                     Width="300"
-                     Margin="0,10,0,0"/>
-        
-        <TextBlock x:Name="ScoreText"
-                   Text="Poeng: 0"
-                   FontSize="20"
-                   Foreground="White"
-                   Margin="0,20,0,0"/>
-        
-        <TextBlock x:Name="TimeText"
-                   Text="Tid igjen: 30 min"
-                   FontSize="20"
-                   Foreground="White"
-                   Margin="0,10,0,0"/>
-      </StackPanel>
+                <!-- Math Problem -->
+                <TextBlock x:Name="ProblemText" 
+                         Text="3 × 4 = ?" 
+                         FontSize="72" 
+                         Foreground="White"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Margin="0,0,0,20"/>
+
+                <!-- Answer Input -->
+                <TextBox x:Name="AnswerInput" 
+                         Grid.Row="1"
+                         Width="200" 
+                         Height="50"
+                         FontSize="24"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Margin="0,0,0,20"
+                         Background="#333333"
+                         Foreground="White"
+                         BorderBrush="#4CAF50"
+                         BorderThickness="2"
+                         CornerRadius="5"
+                         TextAlignment="Center"/>
+
+                <!-- Submit Button -->
+                <Button x:Name="SubmitButton" 
+                        Grid.Row="2"
+                        Content="Svar" 
+                        Width="200" 
+                        Height="50"
+                        FontSize="24"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="#4CAF50"
+                        Foreground="White"
+                        BorderThickness="0"
+                        CornerRadius="5"/>
+            </Grid>
+
+            <!-- Victory Text -->
+            <TextBlock x:Name="VictoryText" 
+                      Text="Gratulerer! 🎉" 
+                      FontSize="72" 
+                      Foreground="#4CAF50"
+                      Grid.Row="1"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      IsVisible="False"
+                      Opacity="0">
+                <TextBlock.RenderTransform>
+                    <ScaleTransform ScaleX="0" ScaleY="0"/>
+                </TextBlock.RenderTransform>
+            </TextBlock>
+        </Grid>
     </Grid>
-
-    <!-- Footer -->
-    <StackPanel Grid.Row="2" Margin="20">
-      <Button x:Name="SubmitButton"
-              Content="Sjekk svar"
-              HorizontalAlignment="Center"
-              Classes="accent"
-              Click="SubmitButton_Click"/>
-    </StackPanel>
-
-    <!-- Victory Text (Hidden by default) -->
-    <TextBlock x:Name="VictoryText"
-               Text="Gratulerer! 🎉"
-               FontSize="48"
-               FontWeight="Bold"
-               Foreground="Lime"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center"
-               IsVisible="False">
-      <TextBlock.Transitions>
-        <Transitions>
-          <DoubleTransition Property="Opacity" Duration="0:0:1"/>
-          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1"/>
-        </Transitions>
-      </TextBlock.Transitions>
-    </TextBlock>
-
-    <!-- Background Canvas -->
-    <Canvas x:Name="BackgroundCanvas" IsHitTestVisible="False">
-      <Canvas.Background>
-        <SolidColorBrush Color="Black"/>
-      </Canvas.Background>
-    </Canvas>
-  </Grid>
 </Window>
