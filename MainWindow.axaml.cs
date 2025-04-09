@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -37,6 +38,9 @@ public partial class MainWindow : Window
         InitializeBackground();
         InitializeFloatingNumbers();
 
+        // Prevent window from closing until all problems are solved
+        Closing += Window_Closing;
+
         // Handle key press for Enter key
         AnswerInput.KeyDown += (s, e) =>
         {
@@ -62,7 +66,52 @@ public partial class MainWindow : Window
     private void InitializeBackground()
     {
         // Create initial background elements
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 30; i++)
+        {
+            AddBackgroundElement();
+        }
+
+        // Start background animation timer
+        var backgroundTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(50)
+        };
+
+        backgroundTimer.Tick += BackgroundTimer_Tick;
+        backgroundTimer.Start();
+    }
+
+    private void BackgroundTimer_Tick(object? sender, EventArgs e)
+    {
+        // Animate existing elements
+        foreach (var element in backgroundElements.ToList())
+        {
+            var transform = (TranslateTransform)element.RenderTransform;
+            transform.Y -= 1; // Move upward
+
+            // Reset position when element goes off screen
+            if (transform.Y < -100)
+            {
+                transform.Y = BackgroundCanvas.Bounds.Height;
+                transform.X = random.Next((int)BackgroundCanvas.Bounds.Width);
+            }
+        }
+
+        foreach (var number in floatingNumbers.ToList())
+        {
+            var transform = (TranslateTransform)number.RenderTransform;
+            transform.Y -= 0.5; // Move upward slower
+
+            // Reset position when element goes off screen
+            if (transform.Y < -100)
+            {
+                transform.Y = BackgroundCanvas.Bounds.Height;
+                transform.X = random.Next((int)BackgroundCanvas.Bounds.Width);
+            }
+        }
+
+        // Occasionally add new elements
+        if (random.Next(100) < 5) // 5% chance each tick
         {
             AddBackgroundElement();
         }
@@ -79,16 +128,18 @@ public partial class MainWindow : Window
 
     private void AddFloatingNumber()
     {
-        var number = random.Next(1, 10);
+        var number = random.Next(1, 13);
         var element = new TextBlock
         {
             Text = number.ToString(),
-            FontSize = random.Next(20, 40),
-            Foreground = new SolidColorBrush(new Color(77, 255, 255, 255)),
+            FontSize = random.Next(30, 80),
+            Foreground = new SolidColorBrush(Color.FromArgb(
+                (byte)random.Next(20, 51),
+                255, 255, 255)),
             RenderTransform = new TranslateTransform
             {
                 X = random.Next((int)BackgroundCanvas.Bounds.Width),
-                Y = random.Next((int)BackgroundCanvas.Bounds.Height)
+                Y = BackgroundCanvas.Bounds.Height + 100
             }
         };
 
@@ -98,15 +149,18 @@ public partial class MainWindow : Window
 
     private void AddBackgroundElement()
     {
+        string[] symbols = { "×", "+", "−", "÷", "=", "%" };
         var element = new TextBlock
         {
-            Text = random.Next(2) == 0 ? "×" : "+",
-            FontSize = random.Next(20, 40),
-            Foreground = new SolidColorBrush(new Color(51, 255, 255, 255)),
+            Text = symbols[random.Next(symbols.Length)],
+            FontSize = random.Next(40, 120), // Larger symbols
+            Foreground = new SolidColorBrush(Color.FromArgb(
+                (byte)random.Next(20, 51), // Alpha between 0.08 and 0.2
+                255, 255, 255)),
             RenderTransform = new TranslateTransform
             {
                 X = random.Next((int)BackgroundCanvas.Bounds.Width),
-                Y = random.Next((int)BackgroundCanvas.Bounds.Height)
+                Y = BackgroundCanvas.Bounds.Height + 100 // Start below screen
             }
         };
 
@@ -382,5 +436,18 @@ public partial class MainWindow : Window
             }
         };
         timer.Start();
+    }
+
+    private void Window_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (problemsSolved < 10)
+        {
+            e.Cancel = true;
+            var messageBox = MessageBoxManager.GetMessageBoxStandard(
+                "Ikke ferdig ennå!", 
+                "Du må løse alle oppgavene før du kan avslutte programmet.",
+                ButtonEnum.Ok);
+            _ = messageBox.ShowAsync();
+        }
     }
 }
