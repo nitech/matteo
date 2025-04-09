@@ -22,5 +22,8 @@ build_property.EnableCodeStyleSeverity =
 [D:/Projects/Matteo/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[D:/Projects/Matteo/Controls/MotivatorPig.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [D:/Projects/Matteo/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
@@ -26,10 +27,14 @@ public partial class MainWindow : Window
     private DispatcherTimer? backgroundTimer;
     private readonly List<TextBlock> backgroundElements = new();
     private readonly List<TextBlock> floatingNumbers = new();
+    private readonly List<Image> enemies = new();
+    private readonly List<string> enemyTypes = new() { "+", "-", "×", "÷" };
+    private Bitmap? enemiesSprite;
 
     public MainWindow()
     {
         InitializeComponent();
+        LoadSprites();
         LoadStats();
         GenerateNewProblem();
         StartTimer();
@@ -44,6 +49,18 @@ public partial class MainWindow : Window
                 CheckAnswer();
             }
         };
+    }
+
+    private void LoadSprites()
+    {
+        try
+        {
+            enemiesSprite = new Bitmap("Assets/fiender.png");
+        }
+        catch (Exception)
+        {
+            // Handle sprite loading error
+        }
     }
 
     private void InitializeBackground()
@@ -222,6 +239,8 @@ public partial class MainWindow : Window
                     ProblemText.Foreground = new SolidColorBrush(Colors.Lime);
                     ProblemText.RenderTransform = new ScaleTransform(1.2, 1.2);
                     
+                    ShowCorrectAnswerEffects();
+
                     // Animate score increase
                     currentScore += 10;
                     problemsSolved++;
@@ -256,6 +275,8 @@ public partial class MainWindow : Window
             }
             else
             {
+                ShowIncorrectAnswerEffects();
+
                 // Play wrong answer animation
                 if (ProblemText != null)
                 {
@@ -312,6 +333,24 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ShowCorrectAnswerEffects()
+    {
+        // Add celebration effects
+        for (int i = 0; i < 5; i++)
+        {
+            AddEnemy(enemyTypes[random.Next(enemyTypes.Count)]);
+        }
+
+        // Show motivational message
+        Motivator?.ShowCorrectAnswer();
+    }
+
+    private void ShowIncorrectAnswerEffects()
+    {
+        // Show encouraging message
+        Motivator?.ShowIncorrectAnswer();
+    }
+
     private void ShowVictory()
     {
         if (VictoryText != null)
@@ -363,5 +402,53 @@ public partial class MainWindow : Window
             }
             DispatcherTimer.RunOnce(() => Close(), TimeSpan.FromSeconds(2));
         }
+    }
+
+    private void AddEnemy(string type)
+    {
+        if (enemiesSprite == null) return;
+
+        var enemy = new Image
+        {
+            Source = enemiesSprite,
+            Width = 32,
+            Height = 32
+        };
+
+        var startX = random.Next((int)GameCanvas.Bounds.Width);
+        Canvas.SetLeft(enemy, startX);
+        Canvas.SetTop(enemy, -50);
+
+        GameCanvas.Children.Add(enemy);
+        enemies.Add(enemy);
+
+        // Animate enemy
+        var timer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(50)
+        };
+
+        var angle = 0.0;
+        timer.Tick += (s, e) =>
+        {
+            var top = Canvas.GetTop(enemy);
+            var left = Canvas.GetLeft(enemy);
+
+            // Sinusoidal movement
+            angle += 0.1;
+            left += Math.Sin(angle) * 2;
+            top += 2;
+
+            Canvas.SetLeft(enemy, left);
+            Canvas.SetTop(enemy, top);
+
+            if (top > GameCanvas.Bounds.Height + 50)
+            {
+                GameCanvas.Children.Remove(enemy);
+                enemies.Remove(enemy);
+                timer.Stop();
+            }
+        };
+        timer.Start();
     }
 }

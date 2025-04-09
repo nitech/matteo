@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:Matteo.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Matteo.Views.MainWindow"
         Title="Matteo"
@@ -12,6 +13,11 @@
         <!-- Animated Background -->
         <Canvas x:Name="BackgroundCanvas" Background="#1a1a1a">
             <!-- Background elements will be added programmatically -->
+        </Canvas>
+
+        <!-- Game Elements Canvas -->
+        <Canvas x:Name="GameCanvas">
+            <!-- Enemies and effects will be added here programmatically -->
         </Canvas>
 
         <!-- Main Game Area -->
@@ -65,8 +71,7 @@
                                                 Background="{TemplateBinding Foreground}"
                                                 BorderThickness="0"
                                                 CornerRadius="10"
-                                                HorizontalAlignment="Left"
-                                                Width="{TemplateBinding Value}%"/>
+                                                HorizontalAlignment="Left"/>
                                     </Grid>
                                 </Border>
                             </ControlTemplate>
@@ -102,7 +107,6 @@
                          VerticalAlignment="Center"
                          Margin="0,0,0,20"
                          Background="#333333"
-                         Foreground="Black"
                          BorderBrush="#4CAF50"
                          BorderThickness="2"
                          CornerRadius="5"
@@ -137,6 +141,13 @@
                     <ScaleTransform ScaleX="0" ScaleY="0"/>
                 </TextBlock.RenderTransform>
             </TextBlock>
+
+            <!-- Motivator Pig -->
+            <controls:MotivatorPig x:Name="Motivator"
+                                  Grid.Row="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Bottom"
+                                  Margin="20,0,0,20"/>
         </Grid>
     </Grid>
 </Window>
