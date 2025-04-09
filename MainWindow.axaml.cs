@@ -15,16 +15,13 @@ namespace Matteo.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly Random random = new();
-    private Dictionary<string, int> problemStats = new();
+    private readonly Random random = new Random();
+    private Dictionary<string, int> problemStats = new Dictionary<string, int>();
     private readonly string statsFilePath = "problem_stats.json";
-    private int currentScore;
-    private int problemsSolved;
+    private int currentScore = 0;
+    private int problemsSolved = 0;
     private int firstNumber;
     private int secondNumber;
-    private DispatcherTimer? timer;
-    private TimeSpan remainingTime;
-    private DispatcherTimer? backgroundTimer;
     private readonly List<TextBlock> backgroundElements = new();
     private readonly List<TextBlock> floatingNumbers = new();
     private readonly List<Image> enemies = new();
@@ -37,7 +34,6 @@ public partial class MainWindow : Window
         LoadSprites();
         LoadStats();
         GenerateNewProblem();
-        StartTimer();
         InitializeBackground();
         InitializeFloatingNumbers();
 
@@ -70,14 +66,6 @@ public partial class MainWindow : Window
         {
             AddBackgroundElement();
         }
-
-        // Start background animation timer
-        backgroundTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(50)
-        };
-        backgroundTimer.Tick += BackgroundTimer_Tick;
-        backgroundTimer.Start();
     }
 
     private void InitializeFloatingNumbers()
@@ -124,36 +112,6 @@ public partial class MainWindow : Window
 
         BackgroundCanvas.Children.Add(element);
         backgroundElements.Add(element);
-    }
-
-    private void BackgroundTimer_Tick(object? sender, EventArgs e)
-    {
-        // Animate background elements
-        foreach (var element in backgroundElements)
-        {
-            var transform = (TranslateTransform)element.RenderTransform;
-            transform.Y -= 2;
-
-            if (transform.Y < -50)
-            {
-                transform.Y = BackgroundCanvas.Bounds.Height + 50;
-                transform.X = random.Next((int)BackgroundCanvas.Bounds.Width);
-            }
-        }
-
-        // Animate floating numbers
-        foreach (var number in floatingNumbers)
-        {
-            var transform = (TranslateTransform)number.RenderTransform;
-            transform.Y -= 1;
-            transform.X += Math.Sin(transform.Y / 50) * 2;
-
-            if (transform.Y < -50)
-            {
-                transform.Y = BackgroundCanvas.Bounds.Height + 50;
-                transform.X = random.Next((int)BackgroundCanvas.Bounds.Width);
-            }
-        }
     }
 
     private void LoadStats()
@@ -368,39 +326,13 @@ public partial class MainWindow : Window
             // Show message and close after animation
             DispatcherTimer.RunOnce(() =>
             {
-                var messageBox = MessageBoxManager.GetMessageBoxStandard("Bra jobbet!", "Gratulerer! Du har løst nok oppgaver og kan bruke datamaskinen i 30 minutter!", ButtonEnum.Ok);
+                var messageBox = MessageBoxManager.GetMessageBoxStandard(
+                    "Gratulerer!", 
+                    "Du har løst alle oppgavene! Nå kan du bruke datamaskinen i 30 minutter som belønning. Bra jobbet!",
+                    ButtonEnum.Ok);
                 _ = messageBox.ShowAsync();
                 Close();
             }, TimeSpan.FromSeconds(3));
-        }
-    }
-
-    private void StartTimer()
-    {
-        remainingTime = TimeSpan.FromMinutes(30);
-        timer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromSeconds(1)
-        };
-        timer.Tick += Timer_Tick;
-        timer.Start();
-    }
-
-    private void Timer_Tick(object? sender, EventArgs e)
-    {
-        remainingTime = remainingTime.Subtract(TimeSpan.FromSeconds(1));
-        if (TimeText != null)
-            TimeText.Text = $"Tid igjen: {remainingTime.Minutes} min {remainingTime.Seconds} sek";
-
-        if (remainingTime.TotalSeconds <= 0)
-        {
-            timer?.Stop();
-            if (ProblemText != null)
-            {
-                ProblemText.Foreground = new SolidColorBrush(Colors.Red);
-                ProblemText.Text = "Tiden er ute!";
-            }
-            DispatcherTimer.RunOnce(() => Close(), TimeSpan.FromSeconds(2));
         }
     }
 

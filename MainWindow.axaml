@@ -28,24 +28,12 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Top Bar with Score and Time -->
+            <!-- Top Bar with Score -->
             <Grid Grid.Row="0" Margin="0,0,0,20">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
                 <TextBlock x:Name="ScoreText" 
                          Text="Poeng: 0" 
                          FontSize="24" 
                          Foreground="White"
-                         VerticalAlignment="Center"/>
-                
-                <TextBlock x:Name="TimeText" 
-                         Text="Tid igjen: 30 min 0 sek" 
-                         FontSize="24" 
-                         Foreground="White"
-                         Grid.Column="1"
                          VerticalAlignment="Center"/>
             </Grid>
 
