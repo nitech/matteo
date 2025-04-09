@@ -83,35 +83,34 @@ public partial class MainWindow : Window
 
     private void BackgroundTimer_Tick(object? sender, EventArgs e)
     {
-        // Animate existing elements
-        foreach (var element in backgroundElements.ToList())
+        var elementsToRemove = new List<TextBlock>();
+        foreach (var element in BackgroundCanvas.Children.OfType<TextBlock>().ToList())
         {
-            var transform = (TranslateTransform)element.RenderTransform;
-            transform.Y -= 1; // Move upward
+            var currentTop = Canvas.GetTop(element);
+            var currentLeft = Canvas.GetLeft(element);
+            
+            // Random horizontal movement
+            var horizontalMove = new Random().Next(-1, 2);  // -1, 0, or 1
+            Canvas.SetLeft(element, currentLeft + horizontalMove);
+            
+            // Upward movement with slight variation
+            Canvas.SetTop(element, currentTop - new Random().Next(1, 3));
 
-            // Reset position when element goes off screen
-            if (transform.Y < -100)
+            // Remove if out of bounds
+            if (currentTop < -100 || currentLeft < -100 || currentLeft > Bounds.Width + 100)
             {
-                transform.Y = BackgroundCanvas.Bounds.Height;
-                transform.X = random.Next((int)BackgroundCanvas.Bounds.Width);
+                elementsToRemove.Add(element);
             }
         }
 
-        foreach (var number in floatingNumbers.ToList())
+        foreach (var element in elementsToRemove)
         {
-            var transform = (TranslateTransform)number.RenderTransform;
-            transform.Y -= 0.5; // Move upward slower
-
-            // Reset position when element goes off screen
-            if (transform.Y < -100)
-            {
-                transform.Y = BackgroundCanvas.Bounds.Height;
-                transform.X = random.Next((int)BackgroundCanvas.Bounds.Width);
-            }
+            BackgroundCanvas.Children.Remove(element);
+            AddBackgroundElement();
         }
 
-        // Occasionally add new elements
-        if (random.Next(100) < 5) // 5% chance each tick
+        // Occasionally add new elements to maintain density
+        if (new Random().Next(100) < 10)  // 10% chance each tick
         {
             AddBackgroundElement();
         }
@@ -149,23 +148,38 @@ public partial class MainWindow : Window
 
     private void AddBackgroundElement()
     {
-        string[] symbols = { "×", "+", "−", "÷", "=", "%" };
-        var element = new TextBlock
+        var random = new Random();
+        var symbols = new[] { "×", "+", "−", "÷", "=", "%", "π", "∑", "√" };
+        var symbol = symbols[random.Next(symbols.Length)];
+        
+        // Generate pastel colors
+        byte baseAlpha = (byte)random.Next(30, 70);
+        var colors = new[]
         {
-            Text = symbols[random.Next(symbols.Length)],
-            FontSize = random.Next(40, 120), // Larger symbols
-            Foreground = new SolidColorBrush(Color.FromArgb(
-                (byte)random.Next(20, 51), // Alpha between 0.08 and 0.2
-                255, 255, 255)),
-            RenderTransform = new TranslateTransform
-            {
-                X = random.Next((int)BackgroundCanvas.Bounds.Width),
-                Y = BackgroundCanvas.Bounds.Height + 100 // Start below screen
-            }
+            Color.FromArgb(baseAlpha, 255, 182, 193),    // Pastel pink
+            Color.FromArgb(baseAlpha, 176, 224, 230),    // Powder blue
+            Color.FromArgb(baseAlpha, 144, 238, 144),    // Light green
+            Color.FromArgb(baseAlpha, 230, 230, 250),    // Lavender
+            Color.FromArgb(baseAlpha, 255, 218, 185),    // Peach
+            Color.FromArgb(baseAlpha, 175, 238, 238)     // Pale turquoise
+        };
+        
+        var textBlock = new TextBlock
+        {
+            Text = symbol,
+            FontSize = random.Next(40, 120),
+            Foreground = new SolidColorBrush(colors[random.Next(colors.Length)]),
+            Opacity = random.Next(40, 80) / 100.0,
+            // Position anywhere on the screen
+            Margin = new Thickness(
+                random.Next(0, (int)Bounds.Width),
+                random.Next(0, (int)Bounds.Height),
+                0, 0)
         };
 
-        BackgroundCanvas.Children.Add(element);
-        backgroundElements.Add(element);
+        Canvas.SetLeft(textBlock, random.Next(0, (int)Bounds.Width));
+        Canvas.SetTop(textBlock, random.Next(0, (int)Bounds.Height));
+        BackgroundCanvas.Children.Add(textBlock);
     }
 
     private void LoadStats()

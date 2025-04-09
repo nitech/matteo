@@ -5,8 +5,10 @@
         xmlns:controls="clr-namespace:Matteo.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Matteo.Views.MainWindow"
+        WindowState="FullScreen"
+        SystemDecorations="None"
+        ShowInTaskbar="False"
         Title="Matteo"
-        WindowState="Maximized"
         Background="#1a1a1a">
     
     <Grid>
